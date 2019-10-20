@@ -291,3 +291,72 @@ class SSDHead(AnchorHead):
             0.5*self.loss_weights[1]
 
         return (loss_cls, loss_reg)
+
+    # exporting-ralated methods
+    def _prepare_cls_scores_bbox_preds(self, cls_scores, bbox_preds):
+        scores_list = []
+        for o in cls_scores:
+            score = o.permute(0, 2, 3, 1).contiguous().view(o.size(0), -1)
+            scores_list.append(score)
+        cls_scores = torch.cat(scores_list, 1)
+        cls_scores = cls_scores.view(cls_scores.size(0), -1, self.num_classes)
+        if self.use_sigmoid_cls:
+            cls_scores = cls_scores.sigmoid()
+        else:
+            cls_scores = cls_scores.softmax(-1)
+        cls_scores = cls_scores.view(cls_scores.size(0), -1)
+        bbox_list = []
+        for o in bbox_preds:
+            boxes = o.permute(0, 2, 3, 1).contiguous().view(o.size(0), -1)
+            bbox_list.append(boxes)
+        bbox_preds = torch.cat(bbox_list, 1)
+        return cls_scores, bbox_preds
+
+    def get_bboxes(self, cls_scores, bbox_preds, img_metas, cfg,
+                   rescale=False):
+        """This method overloads the original method of AnchorHead.
+           It's implemented only to check that pytorch
+           and Inference Engine's priors are the same
+        """
+
+        assert len(cls_scores) == len(bbox_preds)
+        num_levels = len(cls_scores)
+        mlvl_anchors = [
+            self.anchor_generators[i].grid_anchors(cls_scores[i].size()[-2:],
+                                                   self.anchor_strides[i])
+            for i in range(num_levels)
+        ]
+        mlvl_anchors = torch.cat(mlvl_anchors, 0)
+        cls_scores, bbox_preds = self._prepare_cls_scores_bbox_preds(
+                                                        cls_scores, bbox_preds)
+        bboxes_list = get_proposals(img_metas, cls_scores, bbox_preds,
+                                    mlvl_anchors, cfg, rescale,
+                                    self.cls_out_channels,
+                                    self.use_sigmoid_cls, self.target_means,
+                                    self.target_stds)
+
+        return bboxes_list
+
+    def export_forward(self, cls_scores, bbox_preds, cfg, rescale,
+                       img_metas, feats, img_tensor):
+        num_levels = len(cls_scores)
+
+        anchors = []
+        for i in range(num_levels):
+            if self.anchor_generators[i].manual_anchors:
+                anchors.append(PriorBoxClustered.apply(
+                    self.anchor_generators[i], self.anchor_strides[i],
+                    feats[i], img_tensor, self.target_stds))
+            else:
+                anchors.append(PriorBox.apply(self.anchor_generators[i],
+                                              self.anchor_strides[i],
+                                              feats[i],
+                                              img_tensor, self.target_stds))
+        anchors = torch.cat(anchors, 2)
+        cls_scores, bbox_preds = self._prepare_cls_scores_bbox_preds(
+                                                    cls_scores, bbox_preds)
+
+        return DetectionOutput.apply(cls_scores, bbox_preds, img_metas, cfg,
+                                     rescale, anchors, self.cls_out_channels,
+                                     self.use_sigmoid_cls, self.target_means,
+                                     self.target_stds)

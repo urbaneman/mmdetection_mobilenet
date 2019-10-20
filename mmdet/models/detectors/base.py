@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 import mmcv
 import numpy as np
 import pycocotools.mask as maskUtils
+import torch
 import torch.nn as nn
 
 from mmdet.core import auto_fp16, get_classes, tensor2imgs
@@ -80,8 +81,16 @@ class BaseDetector(nn.Module):
         else:
             return self.aug_test(imgs, img_metas, **kwargs)
 
+    def onnx_export(self, img, img_meta, export_name='', **kwargs):
+        self._export_mode = True
+        self.img_metas = img_meta
+        torch.onnx.export(self, img, export_name, verbose=False)
+
+    # passing None here is a hack to fool the jit engine
     @auto_fp16(apply_to=('img', ))
-    def forward(self, img, img_meta, return_loss=True, **kwargs):
+    def forward(self, img, img_meta=[None], return_loss=True, **kwargs):
+        if self._export_mode:
+            return self.forward_export(img)
         if return_loss:
             return self.forward_train(img, img_meta, **kwargs)
         else:

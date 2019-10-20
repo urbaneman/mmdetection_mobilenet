@@ -3,7 +3,8 @@ import torch
 
 class AnchorGenerator(object):
 
-    def __init__(self, base_size, scales, ratios, scale_major=True, ctr=None, widths=None, heights=None):
+    def __init__(self, base_size, scales, ratios, scale_major=True, ctr=None,
+                 widths=None, heights=None):
         self.base_size = base_size
         if widths is not None and heights is not None:
             self.manual_anchors = True
@@ -15,6 +16,7 @@ class AnchorGenerator(object):
             self.scales = torch.Tensor(scales)
             self.ratios = torch.Tensor(ratios)
             self.scale_major = scale_major
+
         self.ctr = ctr
         self.base_anchors = self.gen_base_anchors()
 
@@ -31,14 +33,6 @@ class AnchorGenerator(object):
         else:
             x_ctr, y_ctr = self.ctr
 
-        # h_ratios = torch.sqrt(self.ratios)
-        # w_ratios = 1 / h_ratios
-        # if self.scale_major:
-        #     ws = (w * w_ratios[:, None] * self.scales[None, :]).view(-1)
-        #     hs = (h * h_ratios[:, None] * self.scales[None, :]).view(-1)
-        # else:
-        #     ws = (w * self.scales[:, None] * w_ratios[None, :]).view(-1)
-        #     hs = (h * self.scales[:, None] * h_ratios[None, :]).view(-1)
         if self.manual_anchors:
             ws = self.widths
             hs = self.heights
@@ -52,14 +46,12 @@ class AnchorGenerator(object):
                 ws = (w * self.scales[:, None] * w_ratios[None, :]).view(-1)
                 hs = (h * self.scales[:, None] * h_ratios[None, :]).view(-1)
 
-        # yapf: disable
         base_anchors = torch.stack(
             [
                 x_ctr - 0.5 * (ws - 1), y_ctr - 0.5 * (hs - 1),
                 x_ctr + 0.5 * (ws - 1), y_ctr + 0.5 * (hs - 1)
             ],
             dim=-1).round()
-        # yapf: enable
 
         return base_anchors
 

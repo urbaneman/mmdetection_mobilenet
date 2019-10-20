@@ -47,6 +47,14 @@ class SingleStageDetector(BaseDetector):
         outs = self.bbox_head(x)
         return outs
 
+    def forward_export(self, img):
+        x = self.extract_feat(img)
+        outs = self.bbox_head(x)
+        bbox_result = self.bbox_head.export_forward(*outs, self.test_cfg,
+                                                    True, self.img_metas,
+                                                    x, img)
+        return bbox_result
+
     def forward_train(self,
                       img,
                       img_metas,
@@ -69,7 +77,10 @@ class SingleStageDetector(BaseDetector):
             bbox2result(det_bboxes, det_labels, self.bbox_head.num_classes)
             for det_bboxes, det_labels in bbox_list
         ]
-        return bbox_results[0]
+        if len(bbox_results):
+            return bbox_results[0]
+        else:
+            return None
 
     def aug_test(self, imgs, img_metas, rescale=False):
         raise NotImplementedError
