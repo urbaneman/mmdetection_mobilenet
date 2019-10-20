@@ -27,28 +27,34 @@ def bboxSelect(result, select_cls, CLASSES, score_thr=0.3):
         # print(bboxes)
         labels = labels[inds]
         # print(labels)
-        labels_select = np.full(labels.shape[0], select_cls)
-        inds_l = (labels == labels_select)
-        bboxes = bboxes[inds_l, :]
+        # labels_select = np.full(labels.shape[0], select_cls)
+        # inds_l = (labels == labels_select)
+        # bboxes = bboxes[inds_l, :]
         # print(bboxes)
-        labels = labels[inds_l]
+        # labels = labels[inds_l]
         # print(labels)
     return bboxes, labels
 
 
-config_file = '../configs/faster_rcnn_r50_fpn_1x.py'
+# config_file = '../configs/faster_rcnn_r50_fpn_1x.py'
+# # download the checkpoint from model zoo and put it in `checkpoints/`
+# checkpoint_file = '../work_dirs/faster_rcnn_r50_fpn_1x/epoch_12.pth'
+
+config_file = '../configs/pascal_voc/ssd300_mobilenetv2_voc.py'
 # download the checkpoint from model zoo and put it in `checkpoints/`
-checkpoint_file = '../work_dirs/faster_rcnn_r50_fpn_1x/epoch_12.pth'
+checkpoint_file = '../work_dirs/ssd300_mobilenet_v2_helmet/latest.pth'
+
 
 # build the model from a config file and a checkpoint file
 model = init_detector(config_file, checkpoint_file, device='cuda:0')
 # img_path = '../demo/demo.jpg'
 
-x = torch.rand(1, 3, 300, 300)
-torch.onnx.export(model, x, "../")
-image_dir = r"/media/gzzn/ElementsSE/ImageData/helmet_detect/JPEGImages"
+image_dir = r"/media/gzzn/ElementsSE/ImageData/helmet_voc/VOC2012/JPEGImages"
 image_list = os.listdir(image_dir)
-txt_save_dir = r"/media/gzzn/ElementsSE/ImageData/helmet_detect/person_bbox"
+txt_save_dir = r"/media/gzzn/ElementsSE/ImageData/helmet_voc/VOC2012/test_reslt"
+
+CLASSES = ('person', 'blue', 'white', 'yellow', 'red', 'none', 'light_jacket', 'red_life_jacket')
+
 if not os.path.exists(txt_save_dir):
     os.mkdir(txt_save_dir)
 for image_name in image_list:
@@ -61,18 +67,20 @@ for image_name in image_list:
     txt_w = open(txt_path, 'w')
     image = cv2.imread(image_path)
     result = inference_detector(model, image)
-    bboxes, labels = bboxSelect(result, 0, model.CLASSES, 0.8)
+    bboxes, labels = bboxSelect(result, 0, model.CLASSES, 0.5)
     image_draw = image
-    for idx, labels in enumerate(labels):
+    for idx, label in enumerate(labels):
         bbox = bboxes[idx, :-1]
         # img_crop = rotate90_img[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]
         image_draw = cv2.rectangle(image_draw, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0,255,0), 2)
         person_line = "0 %d %d %d %d\n" % (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])) # video_name_idx[0]
         txt_w.write(person_line)
+        image_draw = cv2.putText(image_draw, CLASSES[label], (int(bbox[0]), int(bbox[1])),  cv2.FONT_HERSHEY_SIMPLEX, 1.2,
+                                 (0,255,0))
         # cv2.imwrite(frame_save_path, img_crop)
     txt_w.close()
     cv2.imshow('image_draw', image_draw)
-    if cv2.waitKey(1) & 0xFF == ord('q'):  # ?q???
+    if cv2.waitKey(0) & 0xFF == ord('q'):  # ?q???
         break
 
 cv2.destroyAllWindows()
