@@ -1,5 +1,5 @@
-CUDA_VISIBLE_DEVICES=0 python3 tools/test.py configs/pascal_voc/ssd300_mobilenetv2_voc.py\
- work_dirs/ssd300_mobilenet_v2_helmet/latest.pth --out work_dirs/ssd300_mobilenet_v2_helmet/test_result.pkl
+CUDA_VISIBLE_DEVICES=0 python3 tools/test.py configs/pascal_voc/ssd300_mobilenetv2_voc_1.py\
+ work_dirs/ssd300_mobilenet_v2_helmet_2/latest.pth --out work_dirs/ssd300_mobilenet_v2_helmet_2/test_result.pkl
 
 # than run python3 ./tools/voc_eval.py ./work_dirs/ssd300_mobilenet_v2_helmet/test_result.pkl ./configs/pascal_voc/ssd300_mobilenetv2_voc.py
 # to get the mAP of voc eval.

@@ -43,7 +43,7 @@ test_cfg = dict(
 # model training and testing settings
 # dataset settings
 dataset_type = 'HelmetDataset'
-data_root = '/media/gzzn/ElementsSE/ImageData/helmet_voc/'
+data_root = '/media/gzzn/Data/Datasets/ObjectDetection/helmet/'
 img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[128, 128, 128], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile', to_float32=True),
@@ -126,10 +126,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 30
+total_epochs = 32
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/ssd300_mobilenet_v2_helmet_1'
+work_dir = './work_dirs/ssd300_mobilenet_v2_helmet_2'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

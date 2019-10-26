@@ -44,11 +44,11 @@ checkpoint_file = '../work_dirs/faster_rcnn_r50_fpn_1x/epoch_12.pth'
 model = init_detector(config_file, checkpoint_file, device='cuda:0')
 # img_path = '../demo/demo.jpg'
 
-frame_second = 0.5 # ???????
-video_dir = r"/media/gzzn/WangBinPan/Datasets/CRBSRI_Data/RH_WH_RJ_OJ/2"
+frame_second = 1 # ???????
+video_dir = r"/media/gzzn/Thresh/mp4data/video"
 video_list = os.listdir(video_dir)
-frame_save_dir = r"/media/gzzn/WangBinPan/Datasets/CRBSRI_Data/RH_WH_RJ_OJ/frame_person"
-bbox_save_dir = r"/media/gzzn/WangBinPan/Datasets/CRBSRI_Data/RH_WH_RJ_OJ/frame_person_bbox"
+frame_save_dir = r"/media/gzzn/Thresh/mp4data/frame_person"
+bbox_save_dir = r"/media/gzzn/Thresh/mp4data/frame_person_bbox"
 if not os.path.exists(frame_save_dir):
     os.mkdir(frame_save_dir)
 if not os.path.exists(bbox_save_dir):
@@ -57,7 +57,9 @@ for video_name in video_list:
     # if video_name == "109_0_1_0_0.mp4":
     #     continue
     video_path = os.path.join(video_dir, video_name)
-    video_name_idx = os.path.splitext(video_name)[0].split('_')
+    video_name_idx = os.path.splitext(video_name)[0]
+
+    # video_name_idx = os.path.splitext(video_name)[0].split('_')
     # video_class = "%s_%s_%s_%s"%(video_name_idx[1], video_name_idx[2], video_name_idx[3], video_name_idx[4])
     # video_name_ = int(os.path.splitext(video_name)[0].split('.')[0])+500
     # video_name_idx = os.path.splitext(video_name)[0].split('.')[1].split('_')
@@ -87,7 +89,7 @@ for video_name in video_list:
         if frame_now % frame_skip == 0:
             # ?????90
 
-            bbox_save_path = os.path.join(bbox_save_dir, "%s-%d.txt" % (video_name_idx[0], frame_now))
+            bbox_save_path = os.path.join(bbox_save_dir, "%s-%d.txt" % (video_name_idx, frame_now))
             txt_w = open(bbox_save_path, 'w')
             result = inference_detector(model, frame)
             # result = inference_detector(model, rotate90_img)
@@ -109,7 +111,7 @@ for video_name in video_list:
                 # print(frame_save_path)
             txt_w.close()
             frame_save_path = os.path.join(frame_save_dir, "%s-%d.jpg" % (
-                video_name_idx[0], frame_now)) # video_name_idx[0] video_name_
+                video_name_idx, frame_now)) # video_name_idx[0] video_name_
             cv2.imwrite(frame_save_path, frame)
         rval, frame = video_capture.read()
         frame_now += 1

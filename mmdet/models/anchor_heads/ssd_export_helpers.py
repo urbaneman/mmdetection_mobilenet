@@ -68,11 +68,15 @@ class PriorBox(torch.autograd.Function):
         for ar in anchor_generator.ratios.tolist():
             if ar > 1:
                 ars.append(ar)
+        # return g.op("PriorBox", feat, img_tensor, min_size_f=[min_size],
+        #             max_size_f=max_sizes, aspect_ratio_f=ars, flip_i=1,
+        #             clip_i=0, variance_f=list(target_stds),
+        #             step_f=anchor_stride, offset_f=0.5, step_h_f=0,
+        #             step_w_f=0, img_size_i=0, img_h_i=0, img_w_i=0)
         return g.op("PriorBox", feat, img_tensor, min_size_f=[min_size],
                     max_size_f=max_sizes, aspect_ratio_f=ars, flip_i=1,
                     clip_i=0, variance_f=list(target_stds),
-                    step_f=anchor_stride, offset_f=0.5, step_h_f=0,
-                    step_w_f=0, img_size_i=0, img_h_i=0, img_w_i=0)
+                    step_f=anchor_stride, offset_f=0.5, img_size_i=0, img_h_i=0, img_w_i=0)
 
     @staticmethod
     def forward(ctx, anchor_generator, anchor_stride, feat, img_tensor,
@@ -98,8 +102,7 @@ class PriorBoxClustered(torch.autograd.Function):
         return g.op("PriorBoxClustered", feat, img_tensor,
                     height_f=heights, width_f=widths,
                     flip_i=0, clip_i=0, variance_f=list(target_stds),
-                    step_f=anchor_stride, offset_f=0.5, step_h_f=0,
-                    step_w_f=0, img_size_i=0, img_h_i=0, img_w_i=0)
+                    step_f=anchor_stride, offset_f=0.5, img_size_i=0, img_h_i=0, img_w_i=0)
 
     @staticmethod
     def forward(ctx, anchor_generator, anchor_stride, feat, img_tensor, target_stds):
