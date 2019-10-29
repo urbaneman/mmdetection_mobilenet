@@ -43,8 +43,45 @@ test_cfg = dict(
 # model training and testing settings
 # dataset settings
 dataset_type = 'CocoDataset'
-data_root = '/media/gzzn/Data/Datasets/ObjectDetection/COCO'
+data_root = '/media/gzzn/Data/Datasets/ObjectDetection/COCO/'
 img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[128, 128, 128], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile', to_float32=True),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        type='PhotoMetricDistortion',
+        brightness_delta=32,
+        contrast_range=(0.5, 1.5),
+        saturation_range=(0.5, 1.5),
+        hue_delta=18),
+    dict(
+        type='Expand',
+        mean=img_norm_cfg['mean'],
+        to_rgb=img_norm_cfg['to_rgb'],
+        ratio_range=(1, 4)),
+    dict(
+        type='MinIoURandomCrop',
+        min_ious=(0.1, 0.3, 0.5, 0.7, 0.9),
+        min_crop_size=0.3),
+    dict(type='Resize', img_scale=(300, 300), keep_ratio=False),
+    dict(type='Normalize', **img_norm_cfg),
+    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(300, 300),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=False),
+            dict(type='Normalize', **img_norm_cfg),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img']),
+        ])
+]
 data = dict(
     imgs_per_gpu=70,
     workers_per_gpu=3,
@@ -55,51 +92,17 @@ data = dict(
             type=dataset_type,
             ann_file=data_root + 'annotations/instances_train2017.json',
             img_prefix=data_root + 'train2017/',
-            img_scale=(300, 300),
-            img_norm_cfg=img_norm_cfg,
-            size_divisor=None,
-            flip_ratio=0.5,
-            with_mask=False,
-            with_crowd=False,
-            with_label=True,
-            test_mode=False,
-            extra_aug=dict(
-                photo_metric_distortion=dict(
-                    brightness_delta=32,
-                    contrast_range=(0.5, 1.5),
-                    saturation_range=(0.5, 1.5),
-                    hue_delta=18),
-                expand=dict(
-                    mean=img_norm_cfg['mean'],
-                    to_rgb=img_norm_cfg['to_rgb'],
-                    ratio_range=(1, 4)),
-                random_crop=dict(
-                    min_ious=(0.1, 0.3, 0.5, 0.7, 0.9), min_crop_size=0.3)),
-            resize_keep_ratio=False)),
+            pipeline=train_pipeline)),
     val=dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/instances_val2017.json',
         img_prefix=data_root + 'val2017/',
-        img_scale=(300, 300),
-        img_norm_cfg=img_norm_cfg,
-        size_divisor=None,
-        flip_ratio=0,
-        with_mask=False,
-        with_label=False,
-        test_mode=True,
-        resize_keep_ratio=False),
+        pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/image_info_test-dev2017.json',
-        img_prefix=data_root + 'test2017/',
-        img_scale=(300, 300),
-        img_norm_cfg=img_norm_cfg,
-        size_divisor=None,
-        flip_ratio=0,
-        with_mask=False,
-        with_label=False,
-        test_mode=True,
-        resize_keep_ratio=False))
+        ann_file=data_root + 'annotations/instances_val2017.json',
+        img_prefix=data_root + 'val2017/',
+        pipeline=test_pipeline))
 # optimizer
 optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=5e-4)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
@@ -116,7 +119,7 @@ log_config = dict(
     interval=50,
     hooks=[
         dict(type='TextLoggerHook'),
-        dict(type='TensorboardLoggerHook')
+        # dict(type='TensorboardLoggerHook')
     ])
 # yapf:enable
 # runtime settings

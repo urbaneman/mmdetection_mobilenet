@@ -171,7 +171,7 @@ def main():
 
     log_dicts = load_json_logs(json_logs)
 
-    eval(args.tak)(log_dicts, args)
+    eval(args.task)(log_dicts, args)
 
 
 if __name__ == '__main__':

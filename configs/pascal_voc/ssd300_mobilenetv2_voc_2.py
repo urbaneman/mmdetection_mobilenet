@@ -107,7 +107,7 @@ data = dict(
         img_prefix=data_root + 'VOC2012/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=5e-4)
+optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=5e-4)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -126,10 +126,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 40
+total_epochs = 35
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/ssd300_mobilenet_v2_helmet_3'
-load_from = None
+work_dir = './work_dirs/ssd300_mobilenet_v2_helmet_4'
+load_from = './work_dirs/ssd300_mobilenet_v2_helmet_2/latest.pth'
 resume_from = None
 workflow = [('train', 1)]
