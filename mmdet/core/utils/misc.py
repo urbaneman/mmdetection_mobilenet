@@ -21,6 +21,7 @@ def tensor2imgs(tensor, mean=(0, 0, 0), std=(1, 1, 1), to_rgb=True):
 def multi_apply(func, *args, **kwargs):
     pfunc = partial(func, **kwargs) if kwargs else func
     map_results = map(pfunc, *args)
+    # 将返回值以tuple的形式返回，顺序固定
     return tuple(map(list, zip(*map_results)))
 
 

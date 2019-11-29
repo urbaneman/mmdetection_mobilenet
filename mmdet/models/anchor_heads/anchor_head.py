@@ -88,6 +88,9 @@ class AnchorHead(nn.Module):
         bbox_pred = self.conv_reg(x)
         return cls_score, bbox_pred
 
+    # 对于FPN来说，对每一个feature map多做一个单独的分支，来预测是否是前景目标，
+    # 但是它们采用同一个conv_cls, conv_reg
+    # 将返回值以tuple的形式返回，顺序固定
     def forward(self, feats):
         return multi_apply(self.forward_single, feats)
 
