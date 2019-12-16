@@ -108,6 +108,21 @@ class Resize(object):
         if self.keep_ratio:
             img, scale_factor = mmcv.imrescale(
                 results['img'], results['scale'], return_scale=True)
+
+            # change the scale_factor from origin shape by wangbin
+            scale = results['scale']
+            h, w = results['ori_shape'].shape[:2]
+            if isinstance(scale, (float, int)):
+                if scale <= 0:
+                    raise ValueError(
+                        'Invalid scale {}, must be positive.'.format(scale))
+                scale_factor = scale
+            elif isinstance(scale, tuple):
+                max_long_edge = max(scale)
+                max_short_edge = min(scale)
+                scale_factor = min(max_long_edge / max(h, w),
+                                   max_short_edge / min(h, w))
+
         else:
             img, w_scale, h_scale = mmcv.imresize(
                 results['img'], results['scale'], return_scale=True)
