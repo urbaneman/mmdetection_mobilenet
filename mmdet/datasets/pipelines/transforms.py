@@ -116,13 +116,14 @@ class Resize(object):
         results['img'] = img
         results['img_shape'] = img.shape
         results['pad_shape'] = img.shape  # in case that there is no padding
-        results['scale_factor'] = scale_factor
+        results['scale_factor'] = scale_factor # if change the input image size, should change the scale from origin shape
         results['keep_ratio'] = self.keep_ratio
 
     def _resize_bboxes(self, results):
         img_shape = results['img_shape']
         for key in results.get('bbox_fields', []):
             bboxes = results[key] * results['scale_factor']
+            # np[a::b] get num from a to end, stride=b
             bboxes[:, 0::2] = np.clip(bboxes[:, 0::2], 0, img_shape[1] - 1)
             bboxes[:, 1::2] = np.clip(bboxes[:, 1::2], 0, img_shape[0] - 1)
             results[key] = bboxes

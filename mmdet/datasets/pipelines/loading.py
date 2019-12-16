@@ -23,7 +23,8 @@ class LoadImageFromFile(object):
         results['filename'] = filename
         results['img'] = img
         results['img_shape'] = img.shape
-        results['ori_shape'] = img.shape
+        results['ori_shape'] = img.shape  # change this to coco origin image_shape
+                                          # (results['img_info'][‘height’], results['img_info'][‘width’], 3)
         return results
 
     def __repr__(self):
