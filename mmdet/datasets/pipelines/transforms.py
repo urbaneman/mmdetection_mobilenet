@@ -111,7 +111,7 @@ class Resize(object):
             if results['img_shape'] != results['ori_shape']:
                 # change the scale_factor from origin shape by wangbin
                 scale = results['scale']
-                h, w = results['ori_shape'].shape[:2]
+                h, w = results['ori_shape'][:2]
                 if isinstance(scale, (float, int)):
                     if scale <= 0:
                         raise ValueError(

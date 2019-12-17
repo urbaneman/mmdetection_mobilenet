@@ -34,7 +34,7 @@ class CocoDataset(CustomDataset):
         img_infos = []
         for i in self.img_ids:
             info = self.coco.loadImgs([i])[0]
-            info['filename'] = info['file_name']  # if need change jpg -> png
+            info['filename'] = info['file_name'].replace('.jpg', 'x4.png')  # if need change jpg -> png
             img_infos.append(info)
         return img_infos
 
