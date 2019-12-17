@@ -108,6 +108,21 @@ class Resize(object):
         if self.keep_ratio:
             img, scale_factor = mmcv.imrescale(
                 results['img'], results['scale'], return_scale=True)
+            if results['img_shape'] != results['ori_shape']:
+                # change the scale_factor from origin shape by wangbin
+                scale = results['scale']
+                h, w = results['ori_shape'].shape[:2]
+                if isinstance(scale, (float, int)):
+                    if scale <= 0:
+                        raise ValueError(
+                            'Invalid scale {}, must be positive.'.format(scale))
+                    scale_factor = scale
+                elif isinstance(scale, tuple):
+                    max_long_edge = max(scale)
+                    max_short_edge = min(scale)
+                    scale_factor = min(max_long_edge / max(h, w),
+                                       max_short_edge / min(h, w))
+
         else:
             img, w_scale, h_scale = mmcv.imresize(
                 results['img'], results['scale'], return_scale=True)
@@ -116,13 +131,14 @@ class Resize(object):
         results['img'] = img
         results['img_shape'] = img.shape
         results['pad_shape'] = img.shape  # in case that there is no padding
-        results['scale_factor'] = scale_factor
+        results['scale_factor'] = scale_factor # if change the input image size, should change the scale from origin shape
         results['keep_ratio'] = self.keep_ratio
 
     def _resize_bboxes(self, results):
         img_shape = results['img_shape']
         for key in results.get('bbox_fields', []):
             bboxes = results[key] * results['scale_factor']
+            # np[a::b] get num from a to end, stride=b
             bboxes[:, 0::2] = np.clip(bboxes[:, 0::2], 0, img_shape[1] - 1)
             bboxes[:, 1::2] = np.clip(bboxes[:, 1::2], 0, img_shape[0] - 1)
             results[key] = bboxes
